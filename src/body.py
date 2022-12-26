@@ -28,7 +28,8 @@ class Body:
     thrust = 0.0
     thrAngle = 0.0
 
-    rect = pg.Rect(width, height, pos[0], pos[1])
+    # body objects
+    vertices = np.array([[0, 10, 10, 0], [0, 0, 10, 10]])  # TL, TR, BR, BL
 
     def __init__(self, window, pixelScale, width, height, pos, angle, thrust, thrAngle):
 
@@ -44,18 +45,36 @@ class Body:
         self.thrust = thrust
         self.thrAngle = thrAngle
 
-        self.rect = pg.Rect(pos[0] - width / 2, pos[1] - height / 2, width, height)
-
     def draw(self):
-        xPos = (self.pos[0] - self.width / 2) * self.pixelScale
-        yPos = (self.pos[1] - self.height / 2) * self.pixelScale
-        self.rect.update(
-            xPos,
-            yPos,
-            self.width * self.pixelScale,
-            self.height * self.pixelScale,
+
+        # update vertices
+        self.vertices[:, 0] = [
+            (self.pos[0] - self.width / 2) * self.pixelScale,
+            (self.pos[1] - self.width / 2) * self.pixelScale,
+        ]
+        self.vertices[:, 1] = [
+            (self.pos[0] + self.width / 2) * self.pixelScale,
+            (self.pos[1] - self.width / 2) * self.pixelScale,
+        ]
+        self.vertices[:, 2] = [
+            (self.pos[0] + self.width / 2) * self.pixelScale,
+            (self.pos[1] + self.width / 2) * self.pixelScale,
+        ]
+        self.vertices[:, 3] = [
+            (self.pos[0] - self.width / 2) * self.pixelScale,
+            (self.pos[1] + self.width / 2) * self.pixelScale,
+        ]
+
+        pg.draw.polygon(
+            self.window,
+            (255, 255, 255),
+            [
+                (self.vertices[0, 0], self.vertices[1, 0]),
+                (self.vertices[0, 1], self.vertices[1, 1]),
+                (self.vertices[0, 2], self.vertices[1, 2]),
+                (self.vertices[0, 3], self.vertices[1, 3]),
+            ],
         )
-        pg.draw.rect(self.window, (255, 255, 255), self.rect)
 
     def kinematicsEvent(self, dt):
         self.pos += self.velo * dt
