@@ -13,7 +13,7 @@ rect = pg.Rect(width / 2, height / 2, width / 10, height / 10)
 run = True
 clock = pg.time.Clock()
 
-body = Body(window, width / 10, 1, 1, [5.0, 5.0], 0, 1, np.pi / 4)
+body = Body(window, width / 10, 1, 1, [5.0, 5.0], 0, 0.1, 0)
 
 body.rotate(np.pi / 4)
 
@@ -23,6 +23,8 @@ while run:
 
     body.kinematicsEvent(dt)
     body.draw()
+
+    body.thrAngle = np.pi / 8
 
     for event in pg.event.get():
         if event.type == pg.QUIT:

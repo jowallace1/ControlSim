@@ -44,36 +44,100 @@ class Body:
         self.thrAngle = thrAngle
 
     def draw(self):
-
-        # create standard polygon (centered at origin, unrotated)
-        vertices = 0.5 * np.array(
+        # body vertices
+        bodyVerts = 0.5 * np.array(
             [[-self.width, self.width, self.width, -self.width], [-self.height, -self.height, self.height, self.height]]
         )
 
-        # rotate standard polygon
-        R = np.array([[np.cos(self.angle), -np.sin(self.angle)], [np.sin(self.angle), np.cos(self.angle)]])
-        vertices = R @ vertices
+        # thruster vertices
+        thrusterVerts = 0.25 * np.array(
+            [
+                [-self.width / 2, self.width / 2, self.width / 2, -self.width / 2],
+                [-self.height, -self.height, self.height, self.height],
+            ]
+        )
 
-        # translate standard polygon
-        vertices[:, 0] += self.pos
-        vertices[:, 1] += self.pos
-        vertices[:, 2] += self.pos
-        vertices[:, 3] += self.pos
+        # rotate thruster
+        thrusterVerts = (
+            np.array(
+                [
+                    [np.cos(self.thrAngle), -np.sin(self.thrAngle)],
+                    [np.sin(self.thrAngle), np.cos(self.thrAngle)],
+                ]
+            )
+            @ thrusterVerts
+        )
 
-        pg.draw.polygon(
+        # translate thruster relative to body
+        thrusterVerts += np.array(
+            [
+                [0, 0, 0, 0],
+                [
+                    self.height / 2 + self.height / 4,
+                    self.height / 2 + self.height / 4,
+                    self.height / 2 + self.height / 4,
+                    self.height / 2 + self.height / 4,
+                ],
+            ]
+        )
+
+        # rotate everything to body angle
+        thrusterVerts = (
+            np.array(
+                [
+                    [np.cos(self.angle), -np.sin(self.angle)],
+                    [np.sin(self.angle), np.cos(self.angle)],
+                ]
+            )
+            @ thrusterVerts
+        )
+        bodyVerts = (
+            np.array(
+                [
+                    [np.cos(self.angle), -np.sin(self.angle)],
+                    [np.sin(self.angle), np.cos(self.angle)],
+                ]
+            )
+            @ bodyVerts
+        )
+
+        # translate everything to body position
+        thrusterVerts[:, 0] += self.pos
+        thrusterVerts[:, 1] += self.pos
+        thrusterVerts[:, 2] += self.pos
+        thrusterVerts[:, 3] += self.pos
+        bodyVerts[:, 0] += self.pos
+        bodyVerts[:, 1] += self.pos
+        bodyVerts[:, 2] += self.pos
+        bodyVerts[:, 3] += self.pos
+
+        # draw polygons
+
+        pg.draw.polygon(  # thruster
             self.window,
             (255, 255, 255),
             [
-                (vertices[0, 0] * self.pixelScale, vertices[1, 0] * self.pixelScale),
-                (vertices[0, 1] * self.pixelScale, vertices[1, 1] * self.pixelScale),
-                (vertices[0, 2] * self.pixelScale, vertices[1, 2] * self.pixelScale),
-                (vertices[0, 3] * self.pixelScale, vertices[1, 3] * self.pixelScale),
+                (thrusterVerts[0, 0] * self.pixelScale, thrusterVerts[1, 0] * self.pixelScale),
+                (thrusterVerts[0, 1] * self.pixelScale, thrusterVerts[1, 1] * self.pixelScale),
+                (thrusterVerts[0, 2] * self.pixelScale, thrusterVerts[1, 2] * self.pixelScale),
+                (thrusterVerts[0, 3] * self.pixelScale, thrusterVerts[1, 3] * self.pixelScale),
+            ],
+        )
+
+        pg.draw.polygon(  # body
+            self.window,
+            (255, 255, 255),
+            [
+                (bodyVerts[0, 0] * self.pixelScale, bodyVerts[1, 0] * self.pixelScale),
+                (bodyVerts[0, 1] * self.pixelScale, bodyVerts[1, 1] * self.pixelScale),
+                (bodyVerts[0, 2] * self.pixelScale, bodyVerts[1, 2] * self.pixelScale),
+                (bodyVerts[0, 3] * self.pixelScale, bodyVerts[1, 3] * self.pixelScale),
             ],
         )
 
     def kinematicsEvent(self, dt):
-        force = self.thrust * np.array([np.sin(self.thrAngle + self.angle), np.cos(self.thrAngle + self.angle)])
-        torque = self.thrust * np.sin(self.thrAngle) * self.height / 2
+        force = self.thrust * np.array([np.sin(self.thrAngle + self.angle), -np.cos(self.thrAngle + self.angle)])
+        torque = -self.thrust * np.sin(self.thrAngle) * self.height / 2
 
         self.pos += self.velo * dt
         self.velo += self.accel * dt
