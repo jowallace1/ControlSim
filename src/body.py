@@ -1,5 +1,6 @@
 import numpy as np
 import pygame as pg
+import matplotlib as plt
 
 # units in meters, seconds, kilograms, radians
 
@@ -45,12 +46,12 @@ class Body:
 
     def draw(self):
         # body vertices
-        bodyVerts = 0.5 * np.array(
+        bodyVerts = 0.125 * np.array(
             [[-self.width, self.width, self.width, -self.width], [-self.height, -self.height, self.height, self.height]]
         )
 
         # thruster vertices
-        thrusterVerts = 0.25 * np.array(
+        thrusterVerts = 0.0625 * np.array(
             [
                 [-self.width / 2, self.width / 2, self.width / 2, -self.width / 2],
                 [-self.height, -self.height, self.height, self.height],
@@ -69,7 +70,7 @@ class Body:
         )
 
         # translate thruster relative to body
-        thrusterVerts += np.array(
+        thrusterVerts += 0.25 * np.array(
             [
                 [0, 0, 0, 0],
                 [
