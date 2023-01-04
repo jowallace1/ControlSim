@@ -3,10 +3,11 @@ import matplotlib.pyplot as plt
 
 
 class Data:
-    def __init__(self, length, n, unwrap=None):
+    def __init__(self, length, n, unwrap=None, labels=None):
         self.array = np.empty((n + 1, length))
         self.n = n
         self.unwrap = unwrap
+        self.labels = labels
 
     array = np.empty((5, 5))
     depth = 0
@@ -37,17 +38,28 @@ class Data:
     def getSeries(self):
         return self.array[:, self.depth - 1]
 
-    def plot(self, plot=None, labels=None):
+    def plot(self, plot=None):
 
         if plot == None:
             for i in range(self.n):
-                plt.plot(self.array[0, 0 : self.depth - 1], self.array[i + 1, 0 : self.depth - 1], label=labels[i])
+                if self.labels == None:
+                    plt.plot(self.array[0, 0 : self.depth - 1], self.array[i + 1, 0 : self.depth - 1])
+                else:
+                    plt.plot(
+                        self.array[0, 0 : self.depth - 1], self.array[i + 1, 0 : self.depth - 1], label=self.labels[i]
+                    )
         else:
             for i in range(len(plot)):
-                plt.plot(
-                    self.array[0, 0 : self.depth - 1], self.array[plot[i] + 1, 0 : self.depth - 1], label=labels[i]
-                )
+                if self.labels == None:
+                    plt.plot(
+                        self.array[0, 0 : self.depth - 1],
+                        self.array[plot[i] + 1, 0 : self.depth - 1],
+                        label=self.labels[i],
+                    )
+                else:
+                    plt.plot(self.array[0, 0 : self.depth - 1], self.array[plot[i] + 1, 0 : self.depth - 1])
 
+        # if labels != None:
         plt.legend()
         plt.show()
 
