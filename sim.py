@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 from src.body import Body
 from utils.data import Data
+from controllers.simple_pid import SimplePID
 
 run = True
 plot = False
@@ -19,8 +20,13 @@ time = 0
 clock = pg.time.Clock()
 
 # Initialize body
-start = [5.0, 5.0]
-body = Body(window, pxScale, 1, 1, start, np.pi / 4, 0.1, np.pi / 8)
+start = [width / pxScale / 2, height / pxScale / 2]
+thrust = 0.1
+max_steer = np.pi / 2
+body = Body(window, pxScale, 1, 1, start, np.pi / 4, thrust, 0, max_steer)
+
+# Initialize controller
+controller = SimplePID(0, 10, 1, 2, 1, max_steer)
 
 # Initialize data
 data = Data(10000, 3, labels=["x", "y", "angle"])
@@ -31,10 +37,14 @@ while run:
 
     window.fill((0, 0, 0))
 
-    body.kinematicsEvent(dt)
+    body.kinematics_event(dt)
+    controller.update_error(body.angle, dt)
+
+    body.control_event(thrust, controller.evaluate())
+
     body.draw()
 
-    data.addSeries(time, [body.pos[0], body.pos[1], body.angle])
+    data.add_series(time, [body.pos[0], body.pos[1], body.angle])
 
     for event in pg.event.get():
         if event.type == pg.QUIT:
@@ -49,7 +59,7 @@ while run:
 pg.quit()
 
 if plot:
-    dataArray = data.getData()
+    dataArray = data.get_data()
 
     # create time-series plot
     timeFig, timeAx = plt.subplots()
@@ -60,8 +70,7 @@ if plot:
 
     # create top-down plot
     topFig, topAx = plt.subplots()
-    # need to translate coords to start at 0,0 and reflect to match window
-    topAx.plot(dataArray[1, :], -(dataArray[2, :] - start[1]) + start[1])
+    topAx.plot(dataArray[1, :], -(dataArray[2, :] - start[1]) + start[1])  # need to perform some transformations
     topAx.set_xlim([0, width / pxScale])
     topAx.set_ylim([0, height / pxScale])
 

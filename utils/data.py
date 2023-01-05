@@ -16,7 +16,7 @@ class Data:
     labels = None
     toPlot = None
 
-    def addSeries(self, t, data):
+    def add_series(self, t, data):
         series = np.array([t])
 
         if type(data) != "list":
@@ -35,7 +35,7 @@ class Data:
             for i in self.unwrap:
                 self.array[i + 1, :] = np.unwrap(self.array[i + 1, :])
 
-    def getSeries(self):
+    def get_series(self):
         return self.array[:, self.depth - 1]
 
     def plot(self, plot=None):
@@ -63,7 +63,7 @@ class Data:
         plt.legend()
         plt.show()
 
-    def getData(self):
+    def get_data(self):
         return self.array[:, 0 : self.depth - 1]
 
     def save(self, path):
@@ -83,6 +83,6 @@ if __name__ == "__main__":
     phase = np.linspace(0.0, 20.0, 1000) % 2 * np.pi
 
     for i in range(phase.size):
-        myData.addSeries(i, phase[i])
+        myData.add_series(i, phase[i])
 
     myData.plot()

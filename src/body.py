@@ -2,6 +2,8 @@ import numpy as np
 import pygame as pg
 import matplotlib as plt
 
+import utils.utils as utils
+
 # units in meters, seconds, kilograms, radians
 
 
@@ -23,14 +25,15 @@ class Body:
 
     # rotational motion
     angle = 0.0
-    angVelo = 0.0
-    angAccel = 0.0
+    ang_velo = 0.0
+    ang_accel = 0.0
 
     # thruster state
     thrust = 0.0
-    thrAngle = 0.0
+    thr_angle = 0.0
+    max_angle = np.pi / 2
 
-    def __init__(self, window, pixelScale, width, height, pos, angle, thrust, thrAngle):
+    def __init__(self, window, pixelScale, width, height, pos, angle, thrust, thr_angle, max_angle):
 
         self.window = window
         self.pixelScale = pixelScale
@@ -42,7 +45,8 @@ class Body:
 
         # thruster state
         self.thrust = thrust
-        self.thrAngle = thrAngle
+        self.thr_angle = thr_angle
+        self.max_angle = max_angle
 
     def draw(self):
         # body vertices
@@ -62,8 +66,8 @@ class Body:
         thrusterVerts = (
             np.array(
                 [
-                    [np.cos(self.thrAngle), -np.sin(self.thrAngle)],
-                    [np.sin(self.thrAngle), np.cos(self.thrAngle)],
+                    [np.cos(self.thr_angle), -np.sin(self.thr_angle)],
+                    [np.sin(self.thr_angle), np.cos(self.thr_angle)],
                 ]
             )
             @ thrusterVerts
@@ -136,17 +140,21 @@ class Body:
             ],
         )
 
-    def kinematicsEvent(self, dt):
-        force = self.thrust * np.array([np.sin(self.thrAngle + self.angle), -np.cos(self.thrAngle + self.angle)])
-        torque = -self.thrust * np.sin(self.thrAngle) * self.height / 2
+    def control_event(self, thrust, angle):
+        self.thr_angle = utils.clamp(angle, -self.max_angle, self.max_angle)
+        self.thrust = thrust
+
+    def kinematics_event(self, dt):
+        force = self.thrust * np.array([np.sin(self.thr_angle + self.angle), -np.cos(self.thr_angle + self.angle)])
+        torque = -self.thrust * np.sin(self.thr_angle) * self.height / 2
 
         self.pos += self.velo * dt
         self.velo += self.accel * dt
         self.accel = force / self.mass
 
-        self.angle += self.angVelo * dt
-        self.angVelo += self.angAccel * dt
-        self.angAccel = torque / self.inertia
+        self.angle += self.ang_velo * dt
+        self.ang_velo += self.ang_accel * dt
+        self.ang_accel = torque / self.inertia
 
     def translate(self, x, y):
         self.pos[0] += x
